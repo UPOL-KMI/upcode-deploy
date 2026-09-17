@@ -5,6 +5,7 @@
 #
 # Usage:
 #   ./pull-repos.sh                      # use repos.lock (the verified revisions)
+#   USE_SSH=1 ./pull-repos.sh            # clone the forks over SSH, so you can push from them
 #   NO_LOCK=1 ./pull-repos.sh            # ignore the lock; take each repo's default branch
 #   REF=v1.2.3 ./pull-repos.sh           # pin every repo to one tag/branch/commit
 #   ISOLATE_REF=upcode ./pull-repos.sh   # per-repo override, for working on a fork
@@ -22,10 +23,18 @@ ORG="https://github.com/UPOL-KMI"
 REPO_PREFIX="upcode-"
 UPSTREAM_ORG="https://github.com/ReCodEx"
 
-# **The repos we commit into are cloned over SSH, the mirrors over HTTPS**, and the difference is
-# not cosmetic: an HTTPS remote needs a credential helper to push, and without one `git push` fails
-# with "could not read Username for 'https://github.com'" from a repository that otherwise looks
-# correctly set up. The mirrors are never pushed to, so HTTPS is right for them -- it needs no key.
+# **Everything is cloned over HTTPS by default, and SSH is opt-in.** Every repository here is
+# public, so HTTPS needs no credential of any kind -- which is what a server has: no key, no agent,
+# nobody at the keyboard to answer a host-authenticity prompt. Defaulting to SSH made the very first
+# command of the installation guide fail on a fresh machine with `Permission denied (publickey)`,
+# after the three mirrors had already cloned, which reads like a broken script rather than a missing
+# key.
+#
+# `USE_SSH=1` switches the repositories we commit into back to SSH, because an HTTPS remote cannot
+# be pushed to without a credential helper -- it fails with "could not read Username for
+# 'https://github.com'" from a clone that otherwise looks correctly set up. So: deployments read
+# over HTTPS, developers who push pass the flag once. `set_origin` below re-points an existing
+# clone either way, so switching costs nothing.
 ORG_SSH="git@github.com:UPOL-KMI"
 
 # Repositories we commit into: full clone, and never force over local work.
@@ -35,22 +44,29 @@ DEV_REPOS=(api worker isolate)
 MIRROR_REPOS=(broker monitor cleaner)
 
 # Our own replacement frontend. Its repository is named `upcode-web-ui` while the service and the
-# directory are `web-next` (docker-compose.yaml), so it does not go through REPO_PREFIX. SSH rather
-# than HTTPS because this is the one repo everybody pushes to. Default branch is `main`, not
-# `master`.
-WEB_NEXT_URL="git@github.com:UPOL-KMI/upcode-web-ui.git"
+# directory are `web-next` (docker-compose.yaml), so it does not go through REPO_PREFIX. Default
+# branch is `main`, not `master`.
+WEB_NEXT_URL_HTTPS="https://github.com/UPOL-KMI/upcode-web-ui.git"
+WEB_NEXT_URL_SSH="git@github.com:UPOL-KMI/upcode-web-ui.git"
+WEB_NEXT_URL="$([ "${USE_SSH:-}" = "1" ] && echo "$WEB_NEXT_URL_SSH" || echo "$WEB_NEXT_URL_HTTPS")"
 WEB_NEXT_DEFAULT_REF="main"
 
 LOCK_FILE="repos.lock"
 
 mkdir -p repos
 
-# `api`, `worker` and `isolate` carry our own patches and are fetched over SSH from the fork;
-# everything else is read-only for us and comes over HTTPS.
+# `api`, `worker` and `isolate` carry our own patches, so they are the ones `USE_SSH=1` moves to
+# the SSH remote. Everything else is read-only for us and always comes over HTTPS.
 source_url() {
     case "$1" in
-        api|worker|isolate) printf '%s/%s%s.git\n' "$ORG_SSH" "$REPO_PREFIX" "$1" ;;
-        *)                printf '%s/%s%s.git\n' "$ORG" "$REPO_PREFIX" "$1" ;;
+        api|worker|isolate)
+            if [ "${USE_SSH:-}" = "1" ]; then
+                printf '%s/%s%s.git\n' "$ORG_SSH" "$REPO_PREFIX" "$1"
+            else
+                printf '%s/%s%s.git\n' "$ORG" "$REPO_PREFIX" "$1"
+            fi
+            ;;
+        *)  printf '%s/%s%s.git\n' "$ORG" "$REPO_PREFIX" "$1" ;;
     esac
 }
 

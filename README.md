@@ -52,6 +52,7 @@ Overrides, highest precedence first:
 
 ```bash
 ./pull-repos.sh                      # the verified revisions, from repos.lock
+USE_SSH=1 ./pull-repos.sh            # clone the forks over SSH, so you can push from them
 ISOLATE_REF=upcode ./pull-repos.sh   # one repo from a branch, for working on a fork
 REF=master ./pull-repos.sh           # everything from one ref
 NO_LOCK=1 ./pull-repos.sh            # ignore the lock, take default branches
@@ -71,6 +72,13 @@ outright, which is why those three are cloned in full rather than shallow. Re-ru
 from the remote; otherwise it leaves the working tree untouched and tells you so, rather than
 discarding in-progress work. The remaining three (`broker`, `monitor`, `cleaner`) are pure build
 inputs: shallow, and always forced to the pinned revision.
+
+**Everything clones over HTTPS by default**, because every repository here is public and a server
+has no SSH key, no agent and nobody at the keyboard to answer a host-authenticity prompt. If you
+intend to *push* from `repos/api`, `repos/worker`, `repos/isolate` or `repos/web-next`, run it once
+as `USE_SSH=1 ./pull-repos.sh` — an HTTPS remote cannot be pushed to without a credential helper.
+The script re-points an existing clone's `origin` on every run, so switching either way costs
+nothing.
 
 ## Architecture
 

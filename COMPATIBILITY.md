@@ -18,7 +18,19 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 | `monitor`  | `UPOL-KMI/upcode-monitor`| `e6f8a1d`  | 2026-02-13 |
 | `broker`   | `UPOL-KMI/upcode-broker` | `abdc95c`  | 2022-12-04 |
 | `cleaner`  | `UPOL-KMI/upcode-cleaner`| `0a5e390`  | 2025-07-16 |
-| `web-next` | `UPOL-KMI/upcode-web-ui` | `f70d038`  | 2026-09-17 |
+| `web-next` | `UPOL-KMI/upcode-web-ui` | `2330b1e`  | 2026-09-17 |
+
+**A clean clone was rehearsed rather than assumed.** `pull-repos.sh` was run into an empty
+directory with `ssh -o BatchMode=yes`, which fails rather than prompts: all seven repositories
+cloned over HTTPS with no key present. `docker compose config` then parsed from nothing but
+`.env.example` copied to `.env` -- which is what catches a variable removed from the template while
+something still refers to it -- and reports eight services and exactly one published port, 80.
+Every build context and Dockerfile the configuration names exists in that tree.
+
+The script defaulted to SSH for the three forks until this round, and that is how the operator's
+first attempt on a real server failed: three mirrors cloned, then `Permission denied (publickey)`.
+Everything here is public, so HTTPS is the default now and `USE_SSH=1` is the opt-in for whoever
+pushes.
 
 `api` is pinned to `upcode-email-design`, which is the branch the e-mail round is on. Once its pull
 request into `upcode` is merged the commit is unchanged; only the branch that contains it moves, so
