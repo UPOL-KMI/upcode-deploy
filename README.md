@@ -20,11 +20,9 @@ against a running stack.
 ├── repos/                     # source trees (gitignored, populated by pull-repos.sh)
 │   ├── api/  worker/  isolate/                     # our forks, we commit into these
 │   ├── broker/  monitor/  cleaner/                 # our forks, unmodified mirrors
-│   ├── web-app/                                    # upstream ReCodEx, not forked
 │   └── web-next/                                   # our own frontend, see below
 └── services/                  # our deployment code, one folder per component
     ├── api/                   # core REST API (PHP/Nette) + nginx
-    ├── web-app/                # legacy React frontend (Node/Express SSR)
     ├── broker/                 # job scheduler (C++)
     ├── worker/                 # sandboxed code executor (C++, bundles `isolate`)
     ├── monitor/                 # WebSocket relay for live evaluation progress (Python)
@@ -47,9 +45,8 @@ work yet and the path out of each.
 
 In every fork, `master` is an untouched mirror of upstream and our work lives on `upcode`. Only
 `api`, `worker` and `isolate` have that branch; `broker`, `monitor` and `cleaner` are unmodified
-mirrors. `web-app` is the one component **not** forked — it is the legacy frontend that `web-next`
-replaces, so nothing of ours will ever change in it, and pinning it by commit to upstream gives the
-same reproducibility without maintaining a copy of something we intend to delete.
+mirrors. The legacy frontend `web-app` was never forked and, since 2026-09-17, is not fetched or
+built either — `web-next` replaces it and running both meant a second frontend on the same API.
 
 Overrides, highest precedence first:
 
@@ -61,21 +58,19 @@ NO_LOCK=1 ./pull-repos.sh            # ignore the lock, take default branches
 ```
 
 `repos/web-next` is **not** a ReCodEx repo at all — it's our own from-scratch Next.js
-replacement for `web-app`, developed in its own separate git repository
+replacement for the legacy frontend, developed in its own separate git repository
 (`UPOL-KMI/upcode-web-ui`). `pull-repos.sh` fetches it into the same gitignored
 `repos/` tree as the upstream repos, purely for convenience — one script still brings the whole
-stack together. It builds and runs as its own `web-next` service (see `docker-compose.yaml`),
-side by side with the legacy `web-app`, on its own port (`WEB_NEXT_PORT`, see below) rather than
-behind the `proxy` service — this is deliberate while the new frontend is still pre-parity with
-the legacy one; see that repo's own `docs/DECISIONS.md` for the reasoning.
+stack together. It builds and runs as the `web-next` service and, since plan 004, **is what the
+`proxy` serves at `/`** — it is the frontend, not a preview beside one.
 
 `repos/web-next` is meant to be developed in directly, and so now are `repos/api`,
 `repos/worker` and `repos/isolate` — they are our forks, and a push from a shallow clone is refused
 outright, which is why those three are cloned in full rather than shallow. Re-running
 `./pull-repos.sh` only moves them if there are no uncommitted changes and no local commits missing
 from the remote; otherwise it leaves the working tree untouched and tells you so, rather than
-discarding in-progress work. The remaining four (`web-app`, `broker`, `monitor`, `cleaner`) are pure
-build inputs: shallow, and always forced to the pinned revision.
+discarding in-progress work. The remaining three (`broker`, `monitor`, `cleaner`) are pure build
+inputs: shallow, and always forced to the pinned revision.
 
 ## Architecture
 
@@ -86,8 +81,8 @@ build inputs: shallow, and always forced to the pinned revision.
                  ┌────────────┼─────────────┐
                  ▼            ▼              ▼
            ┌──────────┐ ┌──────────┐  ┌────────────┐
-           │ web-app  │ │   api    │  │  monitor   │
-           │ (Node)   │ │(PHP-fpm  │  │ (WebSocket │
+           │ web-next │ │   api    │  │  monitor   │
+           │ (Next.js)│ │(PHP-fpm  │  │ (WebSocket │
            │          │ │ +nginx)  │  │  ⇄ ZeroMQ) │
            └──────────┘ └─┬──┬─────┘  └─────┬──────┘
                            │  │              │
@@ -136,9 +131,7 @@ docker compose logs -f api   # watch first-boot migrations/seed
 ```
 
 For local testing, add `127.0.0.1  recodex.local` (or whatever you set `APP_DOMAIN` to) to
-your `/etc/hosts`, then open `http://recodex.local/` for the legacy `web-app`, or
-`http://recodex.local:${WEB_NEXT_PORT}/` (see `.env`, defaults to `3001`) for the new
-`web-next` frontend.
+your `/etc/hosts`, then open `http://recodex.local/`.
 
 First boot seeds an admin account (`admin@admin.com` / `admin`, controlled by
 `RECODEX_SEED_DB=true` in `.env`) — **log in and change that password immediately**, or set
@@ -275,9 +268,10 @@ More important than the count: **ask for dedicated cores, not shared vCPU on an 
 host** — time limits are measured in wall time, and a core contended by somebody else's VM gives
 students spurious timeouts that nobody can reproduce.
 
-**RAM.** All nine containers idle at about 660 MB together (MySQL 160, web-next 141, broker 109,
-web-app 88, api 72, the rest smaller). Under load MySQL's buffer pool and the FPM pool grow, and
-each running evaluation is capped at **1 GiB** by `limits.memory` in the worker config.
+**RAM.** All eight containers idle at about 485 MB together, measured 2026-09-17 (MySQL 126,
+web-next 113, broker 107, api 62, api-worker 41, monitor 19, proxy 15, worker 3). Under load
+MySQL's buffer pool and the FPM pool grow, and each running evaluation is capped at **1 GiB** by
+`limits.memory` in the worker config.
 
 **Disk.** The images come to about 6.2 GB, of which the worker alone is 2.8 GB (it carries the
 language toolchains, including a Python built from source). Budget roughly 10 GB for the OS, 25 GB
@@ -365,3 +359,37 @@ schema updates that ship in a future upstream release apply automatically.
 Two volumes hold everything that matters: `mysql_data` (the database) and `api_storage`
 (uploaded exercise/solution files, `storage/local` + `storage/hash`). Back these up; every
 other volume (`*_log`, `worker_cache`) is disposable/regeneratable.
+
+**A third thing is not in a volume and not in this repository: `.env`.** It carries the database
+passwords and `JWT_SECRET`, and it is in `.gitignore` precisely because it should not be here.
+Without it the two archives below cannot be restored onto a new machine, and a changed
+`JWT_SECRET` signs every existing session out. Keep a copy somewhere that deserves secrets.
+
+`backup.sh` takes both archives, and `restore.sh` puts them back:
+
+```bash
+./backup.sh -o /var/backups/upolnicek        # one directory per run, named by the timestamp
+./restore.sh /var/backups/upolnicek/upolnicek-2026-09-17_095158
+```
+
+`backup.sh` runs against the live stack -- the dump uses `--single-transaction`, so nothing is
+locked and nobody is interrupted. It keeps 14 days by default (`--keep N`, `0` to keep
+everything), leaves `.env` out unless asked (`--with-env`), and writes a `MANIFEST` recording the
+commit and the `repos.lock` pins the data came from. For a nightly run:
+
+```
+0 3 * * *  cd /var/www/upolnicek && ./backup.sh -o /var/backups/upolnicek >> /var/log/upolnicek-backup.log 2>&1
+```
+
+`restore.sh` **erases the current database and file store** and asks before it does. It leaves
+`.env` alone, so restoring in place uses the deployment's own; restoring onto a new machine means
+putting `.env` there yourself first.
+
+The file store is archived first and the database second, and restored in the opposite order.
+That is not arbitrary: the database is what refers to the files, so a backup interrupted halfway
+leaves a file nothing points at (harmless) rather than a row pointing at a file that is not there
+(a download that fails forever).
+
+**Test a restore before you need one.** Both scripts check their own work -- a dump with fewer
+than ten tables is rejected as not being a database -- but the only proof a backup is restorable
+is a restore.

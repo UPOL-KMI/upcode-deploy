@@ -8,6 +8,51 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-17
+
+| Component  | Source                   | Commit     | Dated      |
+| ---------- | ------------------------ | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`    | `10bf26d4` | 2026-09-17 |
+| `worker`   | `UPOL-KMI/upcode-worker` | `f267aa9`  | 2025-10-25 |
+| `isolate`  | `UPOL-KMI/upcode-isolate`| `25d3f48`  | 2025-07-14 |
+| `monitor`  | `UPOL-KMI/upcode-monitor`| `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker` | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner`| `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui` | `f70d038`  | 2026-09-17 |
+
+`api` is pinned to `upcode-email-design`, which is the branch the e-mail round is on. Once its pull
+request into `upcode` is merged the commit is unchanged; only the branch that contains it moves, so
+the pin needs no bump — but the comment in `repos.lock` does.
+
+**`web-app` is gone from this table because it is gone from the deployment.** It was a second
+complete frontend talking to the same API with the same rights, on a published port nobody watched,
+and its one remaining use — a side-by-side reference during the cutover — ended when the cutover
+did. The service, its build directory, its `.env` entry, its line in `repos.lock` and its clone in
+`pull-repos.sh` were all removed together; `docker compose config` lists eight services now.
+
+**What was verified in this round**, against the running stack rather than by reading:
+
+- **Every message the system sends** was rendered through core-api's own Latte engine with the
+  deployment's real configuration (`tools/email-preview.sh`, 54 templates) and read. The header
+  carries the application's own lockup, generated from the frontend's brand component by
+  `tools/brand-email-logo.mjs`.
+- **The logo in those messages reaches a reader.** It is served at `%api.address%/emails/img/...`,
+  which this deployment's proxy did not route: `/api/` is deliberately narrowed to `/api/v1` so the
+  frontend keeps its own API routes, and `/api/emails/...` fell through to the frontend as a 404 —
+  a broken image in every message. Measured before and after: `404 text/html`, then
+  `200 image/png`. `/api/v1/instances`, `/api/auth/login` and `/api/config` were re-checked after
+  the change; only the intended path moved.
+- **The image was missing from the image.** The PNG existed in the running `api` container and not
+  in what built it: it had been copied in by hand in an earlier session, and every rebuild lost it.
+  The `api` image is rebuilt from the pinned commit here, which is what makes the logo survive a
+  deployment rather than a session.
+- **Backup and restore** (`backup.sh`, `restore.sh`): a backup was taken from the running stack —
+  86 tables, 94 files — and its retention was checked to remove only what it names. The restore
+  script has been read but **not run against live data**; that remains to be done deliberately.
+- **Docker's own log capture is capped** at 3 × 10 MiB per service. This does not touch the `*_log`
+  volumes, which hold the applications' own files: `api_log` was 57 MB, 53 MB of it core-api's
+  `user_actions.log`, which has no rotation of its own and no switch in configuration.
+
 ## Verified set — 2026-09-11
 
 | Component  | Source                       | Commit     | Dated      |
@@ -70,10 +115,11 @@ Our forks live in the [`UPOL-KMI`](https://github.com/UPOL-KMI) organisation as
 untouched `LICENSE` are the whole of what an unmodified fork needs, and adding a notice would make a
 clean mirror unclean for no benefit.
 
-**`web-app` is not forked.** It is the legacy frontend, which `web-next` exists to replace, so
-nothing of ours will ever change in it — forking it would mean maintaining a copy of something we
-intend to delete. It is pinned by commit straight to upstream, which gives the same reproducibility
-without the copy. `pull-repos.sh` carries it as its one source exception.
+**`web-app` was never forked, and is now not fetched either.** It was the legacy frontend, pinned
+by commit straight to upstream because nothing of ours was ever going to change in it. It was
+removed from the deployment on 2026-09-17 — service, build, `.env` entry, pin and clone — so
+`pull-repos.sh` no longer carries a source exception at all: `api`, `worker` and `isolate` come
+from the fork over SSH and everything else over HTTPS.
 
 **Licences differ, and `isolate` is the odd one.** Everything above is MIT (© 2016 ReCodEx Team)
 except `isolate`, which is **GPL-2.0-or-later** (© Martin Mareš, Bernard Blackham; upstream
@@ -273,4 +319,5 @@ had **no published port at all** — this proxy was the only way anybody reached
 would have made it unreachable rather than merely no longer the front door.
 
 **Retiring `web-app`** — the service, its build, and `repos.lock`'s exception for the one unforked
-repo — is still to come, and is deliberately not part of this.
+repo — was still to come when this was written. It was done on 2026-09-17; see the verified set at
+the top.

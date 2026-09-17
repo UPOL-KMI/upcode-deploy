@@ -12,6 +12,20 @@
 # See README.md for the full production deployment guide, and in particular the
 # note about cgroup v2 being required on the host for the `worker` service.
 
+# **Docker's own capture of each container's stdout, capped.** Without this the json-file driver
+# keeps every line a container has ever printed, in /var/lib/docker, until the disk is full -- there
+# is no default limit. Three files of 10 MiB per service is enough to read a recent failure and
+# small enough that nobody has to think about it.
+#
+# **It does not cap the `*_log` volumes**, and that catches people out: those hold log files the
+# *applications* write themselves (core-api's `user_actions.log` above all, which is an audit trail
+# with no rotation of its own). A logging driver never sees them. See the guide for administrators.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 networks:
   recodex:
     driver: bridge
@@ -31,6 +45,7 @@ services:
     # that's missing getName(), which breaks one of core-api's older migrations.
     image: mariadb:10.11
     restart: unless-stopped
+    logging: *default-logging
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -52,6 +67,7 @@ services:
       context: .
       dockerfile: services/api/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       mysql:
         condition: service_healthy
@@ -96,6 +112,7 @@ services:
       context: .
       dockerfile: services/api/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       mysql:
         condition: service_healthy
@@ -140,6 +157,7 @@ services:
       context: .
       dockerfile: services/broker/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       API_ADDRESS: ${PROTOCOL}://${APP_DOMAIN}/api
       NOTIFIER_PORT: ${NOTIFIER_PORT}
@@ -158,6 +176,7 @@ services:
       context: .
       dockerfile: services/worker/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       - broker
     environment:
@@ -187,32 +206,11 @@ services:
       context: .
       dockerfile: services/monitor/Dockerfile
     restart: unless-stopped
+    logging: *default-logging
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
     volumes:
       - monitor_log:/var/log/recodex
-    networks:
-      - recodex
-
-  web-app:
-    build:
-      context: .
-      dockerfile: services/web-app/Dockerfile
-    restart: unless-stopped
-    depends_on:
-      - api
-    environment:
-      WEB_APP_PORT: ${WEB_APP_PORT}
-      API_ADDRESS: ${PROTOCOL}://${APP_DOMAIN}/api
-      RECODEX_TITLE: ${RECODEX_TITLE}
-      TOKEN_COOKIE_PREFIX: ${TOKEN_COOKIE_PREFIX}
-      LOCAL_REGISTRATION_ENABLED: ${LOCAL_REGISTRATION_ENABLED}
-    # Published since plan 004 moved `/` to the new frontend. Until then this service needed no
-    # host port -- the proxy was how anybody reached it -- and the cutover would otherwise have
-    # made the legacy app unreachable rather than merely no longer the front door, which is not
-    # what "keep it as a reference" meant.
-    ports:
-      - "${WEB_APP_PORT}:${WEB_APP_PORT}"
     networks:
       - recodex
 
@@ -222,6 +220,7 @@ services:
       args:
         URL_PATH_PREFIX: ""
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       - api
     environment:
@@ -241,14 +240,13 @@ services:
   proxy:
     image: nginx:1.27
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       - api
-      # `web-next` serves `/` since plan 004 and `web-app` is still reachable on its own port.
-      # Both are listed because nginx resolves every upstream name when it starts and refuses to
-      # start at all if one of them does not resolve -- a missing dependency here is not a slow
-      # first request, it is a proxy that never comes up.
+      # nginx resolves every upstream name when it starts and refuses to start at all if one of
+      # them does not resolve -- a missing dependency here is not a slow first request, it is a
+      # proxy that never comes up.
       - web-next
-      - web-app
       - monitor
     environment:
       APP_DOMAIN: ${APP_DOMAIN}

@@ -32,7 +32,7 @@ ORG_SSH="git@github.com:UPOL-KMI"
 DEV_REPOS=(api worker isolate)
 
 # Build inputs only: shallow clone, always forced to the pinned revision.
-MIRROR_REPOS=(web-app broker monitor cleaner)
+MIRROR_REPOS=(broker monitor cleaner)
 
 # Our own replacement frontend. Its repository is named `upcode-web-ui` while the service and the
 # directory are `web-next` (docker-compose.yaml), so it does not go through REPO_PREFIX. SSH rather
@@ -45,11 +45,10 @@ LOCK_FILE="repos.lock"
 
 mkdir -p repos
 
-# `web-app` is the legacy frontend, which `web-next` replaces; nothing of ours will ever change in
-# it, so it is pinned straight to upstream rather than forked. Everything else comes from our org.
+# `api`, `worker` and `isolate` carry our own patches and are fetched over SSH from the fork;
+# everything else is read-only for us and comes over HTTPS.
 source_url() {
     case "$1" in
-        web-app)          printf '%s/web-app.git\n' "$UPSTREAM_ORG" ;;
         api|worker|isolate) printf '%s/%s%s.git\n' "$ORG_SSH" "$REPO_PREFIX" "$1" ;;
         *)                printf '%s/%s%s.git\n' "$ORG" "$REPO_PREFIX" "$1" ;;
     esac

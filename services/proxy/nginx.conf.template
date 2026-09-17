@@ -31,6 +31,20 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # **The images core-api's e-mails embed.** They are static files under its own `www/`, served at
+    # `%api.address%/emails/img/...` -- which upstream reaches because upstream routes the whole of
+    # `/api/` to core-api. The rule above deliberately narrows that to `/api/v1`, so without this
+    # line `/api/emails/...` falls through to the frontend, is a 404, and every message the system
+    # sends carries a broken logo. Measured before and after: 404 text/html, then 200 image/png.
+    #
+    # Deliberately narrow: `/emails/` and not `/`. Whatever else core-api happens to serve out of
+    # `www/` stays unreachable from outside, which is the property the rule above exists to give.
+    location /api/emails/ {
+        proxy_pass http://api:80/emails/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     location /ws {
         proxy_pass http://monitor:4567;
         proxy_http_version 1.1;

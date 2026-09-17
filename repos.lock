@@ -25,21 +25,20 @@
 # `main`. `broker`, `monitor` and `cleaner` are forks we have not had to change yet and so have no
 # `upcode` branch -- **make one before committing to them.** They are checked out here on a local
 # branch called `pinned`, which `pull-repos.sh` force-resets on every run: a commit left there is
-# lost at the next pull, silently. `web-app` is not forked at all (see the note at the foot).
+# lost at the next pull, silently.
 #
 # Both `api` and `web-next` are pinned to the branch tips that were built and run for the
 # verification recorded in COMPATIBILITY.md.
 
-api        4d025fa69bb46fdec63551034742a9c7a4e996c2   # UPOL-KMI/upcode-api, tip of `upcode`
-web-app    fc6fdaf0f3144a9acb9c702e379cb8fe1eb13413   # ReCodEx/web-app (not forked -- see below)
+api        10bf26d456fc6420224a01bdb5dc848d4371d0fd   # UPOL-KMI/upcode-api, `upcode-email-design` (PR into `upcode`)
 worker     f267aa9d46aa908c56632af351d51f140de7e01c   # UPOL-KMI/upcode-worker, base of `upcode`
 broker     abdc95cfad4586a9cd2f17bdd5fdaa48cc60445d   # UPOL-KMI/upcode-broker
 monitor    e6f8a1dd25c5837c0aef5019b91e5987bfc15c85   # UPOL-KMI/upcode-monitor
 isolate    25d3f48882a08bee1d348476e9ed3af205dc1316   # UPOL-KMI/upcode-isolate, base of `upcode`
 cleaner    0a5e390241866fac52755098fc2cb3882e106e83   # UPOL-KMI/upcode-cleaner
-web-next   313fc47ab2e46196f989e971994d172dd0a01d81   # UPOL-KMI/upcode-web-ui, tip of `main`
+web-next   f70d0382e4e8262b2648e03aa436ff5325ee1bde   # UPOL-KMI/upcode-web-ui, tip of `main`
 
-# `web-app` is the one repository taken straight from upstream. It is the legacy frontend, which
-# `web-next` exists to replace, so nothing of ours will ever change in it -- forking it would mean
-# maintaining a copy of something we intend to delete. Pinning it by commit gives the same
-# reproducibility a fork would, without the copy.
+# **The legacy frontend is gone**, as of the round that removed it: it was a second complete
+# frontend talking to the same API with the same rights, on a published port nobody watched, and its
+# only remaining value -- a side-by-side reference during the cutover -- ended when the cutover did.
+# It is no longer built, no longer cloned and no longer pinned here.

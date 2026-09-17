@@ -9,3 +9,6 @@ JP/
 # Zálohy .env nesou stejná tajemství jako .env samotný.
 .env.bak*
 .env.*.bak
+
+# `backup.sh` writes here when it is given no -o. A backup holds the whole database.
+backups/
