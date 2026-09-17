@@ -232,8 +232,11 @@ services:
       MONITOR_WS_URL: ${MONITOR_PROTOCOL}://${APP_DOMAIN}/ws
       SESSION_COOKIE_PREFIX: ${TOKEN_COOKIE_PREFIX}
       PORT: "3000"
-    ports:
-      - "${WEB_NEXT_PORT}:3000"
+    # **No published port.** This service had one while it was a preview beside the legacy
+    # frontend; since plan 004 the proxy serves it at `/`, so publishing it again would be a second
+    # way in that bypasses whatever the proxy does -- the same objection that retired `web-app`.
+    # To reach it directly while debugging, add a mapping here for as long as you need it:
+    #   ports: ["3001:3000"]
     networks:
       - recodex
 

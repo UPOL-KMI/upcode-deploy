@@ -12,6 +12,13 @@
  * point: the fastest way to find out where a link in a footer actually goes is to open the thing
  * the reader opens.
  *
+ * **The placeholder tokens are deliberately not JWT-shaped.** They used to begin with the base64 of
+ * a JWT header, which is what a real one begins with -- and a secret scanner cannot tell the two
+ * apart, nor should it try. GitGuardian raised exactly that against this repository (a false
+ * positive: the string was invented here and signs nothing). A false positive that fires on every
+ * clone costs somebody an investigation each time, so the placeholder now says in words what it is.
+ * Do not make it look realistic again.
+ *
  * Adding a template: add an entry to $SAMPLES keyed by its path under app/helpers/Emails. A
  * template with no entry is rendered with an empty parameter set and will most likely fail, which
  * the summary at the end reports rather than hides.
@@ -137,13 +144,13 @@ $flag = [
 $SAMPLES = [
     "EmailVerificationHelper/verificationEmail" => [
         "email" => "student@upol.cz",
-        "link" => "$webapp/cs/email-verification?token=eyJhbGciOiJIUzI1NiJ9.SAMPLE",
+        "link" => "$webapp/cs/email-verification?token=THE-TOKEN-FROM-THE-REAL-MESSAGE",
         "expiresAfter" => "20.9.2026 23:59",
         "firstTime" => true,
     ],
     "ForgottenPasswordHelper/resetPasswordEmail" => [
         "username" => "Jan Novák",
-        "link" => "$webapp/cs/forgot-password/change?token=eyJhbGciOiJIUzI1NiJ9.SAMPLE",
+        "link" => "$webapp/cs/forgot-password/change?token=THE-TOKEN-FROM-THE-REAL-MESSAGE",
         "expiresAfter" => "20.9.2026 23:59",
     ],
     "InvitationHelper/invitationEmail" => [
@@ -151,7 +158,7 @@ $SAMPLES = [
         "host" => "Mgr. Jakub Juračka",
         "hostmail" => "jakub.juracka@upol.cz",
         "expireAt" => $soon,
-        "link" => "$webapp/cs/accept-invitation?token=eyJhbGciOiJIUzI1NiJ9.SAMPLE",
+        "link" => "$webapp/cs/accept-invitation?token=THE-TOKEN-FROM-THE-REAL-MESSAGE",
     ],
 
     "Notifications/AssignmentPoints/shadowPointsUpdated" => [
