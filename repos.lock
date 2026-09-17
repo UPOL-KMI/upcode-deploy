@@ -31,10 +31,10 @@
 # verification recorded in COMPATIBILITY.md.
 
 api        10bf26d456fc6420224a01bdb5dc848d4371d0fd   # UPOL-KMI/upcode-api, `upcode-email-design` (PR into `upcode`)
-worker     f267aa9d46aa908c56632af351d51f140de7e01c   # UPOL-KMI/upcode-worker, base of `upcode`
+worker     cf26d8ce817abcf473abd52d0d76e0f548027502   # UPOL-KMI/upcode-worker, tip of `upcode`
 broker     abdc95cfad4586a9cd2f17bdd5fdaa48cc60445d   # UPOL-KMI/upcode-broker
 monitor    e6f8a1dd25c5837c0aef5019b91e5987bfc15c85   # UPOL-KMI/upcode-monitor
-isolate    25d3f48882a08bee1d348476e9ed3af205dc1316   # UPOL-KMI/upcode-isolate, base of `upcode`
+isolate    bfdcf98ea7be96eb590d6fb1c3bc312d912208b3   # UPOL-KMI/upcode-isolate, tip of `upcode`
 cleaner    0a5e390241866fac52755098fc2cb3882e106e83   # UPOL-KMI/upcode-cleaner
 web-next   2330b1ea29b26507884433e45463d8ba6715ccf7   # UPOL-KMI/upcode-web-ui, tip of `main`
 

@@ -13,19 +13,32 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 | Component  | Source                   | Commit     | Dated      |
 | ---------- | ------------------------ | ---------- | ---------- |
 | `api`      | `UPOL-KMI/upcode-api`    | `10bf26d4` | 2026-09-17 |
-| `worker`   | `UPOL-KMI/upcode-worker` | `f267aa9`  | 2025-10-25 |
-| `isolate`  | `UPOL-KMI/upcode-isolate`| `25d3f48`  | 2025-07-14 |
+| `worker`   | `UPOL-KMI/upcode-worker` | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate`| `bfdcf98`  | 2026-09-17 |
 | `monitor`  | `UPOL-KMI/upcode-monitor`| `e6f8a1d`  | 2026-02-13 |
 | `broker`   | `UPOL-KMI/upcode-broker` | `abdc95c`  | 2022-12-04 |
 | `cleaner`  | `UPOL-KMI/upcode-cleaner`| `0a5e390`  | 2025-07-16 |
 | `web-next` | `UPOL-KMI/upcode-web-ui` | `2330b1e`  | 2026-09-17 |
+
+**`worker` and `isolate` were pinned to the wrong commits, and only a real build found it.** Both
+lines read "base of `upcode`" -- the commit *before* our patches -- while this machine had the
+branch tips checked out from before the lock was written, so every build here used code the lock
+did not name. On a clean server the pinned `isolate` is upstream 1.8.1, whose Makefile has no
+`isolate-cg-keeper` target, and the worker image fails to build at that line. The 2.7 upgrade and
+the worker change that goes with it (`--cg-timing`, which Isolate 2.0 removed) are on the `upcode`
+tips, which is where both pins now point.
+
+The rehearsal below had not caught it because it stopped at `docker compose config`: the pins were
+cloned, the configuration parsed, and nothing compiled. It builds now.
 
 **A clean clone was rehearsed rather than assumed.** `pull-repos.sh` was run into an empty
 directory with `ssh -o BatchMode=yes`, which fails rather than prompts: all seven repositories
 cloned over HTTPS with no key present. `docker compose config` then parsed from nothing but
 `.env.example` copied to `.env` -- which is what catches a variable removed from the template while
 something still refers to it -- and reports eight services and exactly one published port, 80.
-Every build context and Dockerfile the configuration names exists in that tree.
+Every build context and Dockerfile the configuration names exists in that tree, and
+`docker compose build` then produced all six images from those revisions -- worker and sandbox
+compiled from source included.
 
 The script defaulted to SSH for the three forks until this round, and that is how the operator's
 first attempt on a real server failed: three mirrors cloned, then `Permission denied (publickey)`.
