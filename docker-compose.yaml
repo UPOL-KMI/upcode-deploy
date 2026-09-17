@@ -159,7 +159,7 @@ services:
     restart: unless-stopped
     logging: *default-logging
     environment:
-      API_ADDRESS: ${PROTOCOL}://${APP_DOMAIN}/api
+      API_INTERNAL_ADDRESS: ${API_INTERNAL_ADDRESS}
       NOTIFIER_PORT: ${NOTIFIER_PORT}
       BROKER_AUTH_USER: ${BROKER_AUTH_USER}
       BROKER_AUTH_PASSWORD: ${BROKER_AUTH_PASSWORD}
@@ -256,9 +256,15 @@ services:
     volumes:
       - ./services/proxy/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       # - ./services/proxy/certs:/etc/nginx/certs:ro   # uncomment once you add TLS certs
+    # **Bound to the loopback interface, deliberately.** TLS is terminated by a reverse proxy on the
+    # host (Apache, in this deployment), which forwards to this port; publishing it on every
+    # interface as well would leave the whole stack reachable over plain HTTP on that port, past the
+    # certificate and past whatever the front proxy enforces. Drop the `127.0.0.1:` prefix only if
+    # the terminating proxy runs on a *different* machine -- and then restrict it at the firewall
+    # instead.
     ports:
-      - "${HTTP_PORT}:80"
-      # - "${HTTPS_PORT}:443"   # uncomment once you add TLS certs
+      - "127.0.0.1:${HTTP_PORT}:80"
+      # - "${HTTPS_PORT}:443"   # only if you terminate TLS here instead; see the guide
     networks:
       recodex:
         aliases:

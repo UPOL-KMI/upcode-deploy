@@ -7,7 +7,13 @@ workers:
     max_liveness: 4
     ping_interval: 1000
 notifier:
-    address: "${API_ADDRESS}/v1/broker-reports"
+    # **The internal address, not the public one.** This is the broker telling core-api that a job
+    # finished, over the compose network -- the same split the worker's file-manager already makes.
+    # It used to be `${API_ADDRESS}`, which carries the public protocol: set `PROTOCOL=https` for
+    # production and the broker would try TLS against the `proxy` alias, which terminates none, and
+    # every result would go unreported while the stack looked healthy. `port` below is the proxy's
+    # port *inside* the network (80), not whatever the host publishes.
+    address: "${API_INTERNAL_ADDRESS}/v1/broker-reports"
     port: ${NOTIFIER_PORT}
     username: "${BROKER_AUTH_USER}"
     password: "${BROKER_AUTH_PASSWORD}"
