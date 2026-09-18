@@ -12,13 +12,13 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 | Component  | Source                   | Commit     | Dated      |
 | ---------- | ------------------------ | ---------- | ---------- |
-| `api`      | `UPOL-KMI/upcode-api`    | `76ea027`  | 2026-09-18 |
+| `api`      | `UPOL-KMI/upcode-api`    | `45979ef`  | 2026-09-18 |
 | `worker`   | `UPOL-KMI/upcode-worker` | `cf26d8c`  | 2026-09-17 |
 | `isolate`  | `UPOL-KMI/upcode-isolate`| `bfdcf98`  | 2026-09-17 |
 | `monitor`  | `UPOL-KMI/upcode-monitor`| `e6f8a1d`  | 2026-02-13 |
 | `broker`   | `UPOL-KMI/upcode-broker` | `abdc95c`  | 2022-12-04 |
 | `cleaner`  | `UPOL-KMI/upcode-cleaner`| `0a5e390`  | 2025-07-16 |
-| `web-next` | `UPOL-KMI/upcode-web-ui` | `f78d335`  | 2026-09-18 |
+| `web-next` | `UPOL-KMI/upcode-web-ui` | `2ccc46b`  | 2026-09-18 |
 
 **`worker` and `isolate` were pinned to the wrong commits, and only a real build found it.** Both
 lines read "base of `upcode`" -- the commit *before* our patches -- while this machine had the
@@ -30,6 +30,13 @@ tips, which is where both pins now point.
 
 The rehearsal below had not caught it because it stopped at `docker compose config`: the pins were
 cloned, the configuration parsed, and nothing compiled. It builds now.
+
+**The web-next pin was a release behind, and the rehearsal is what said so.** It named the round
+that filled the landing page's container -- the arrangement the operator rejected -- rather than the
+centred column that replaced it, because the pin was bumped when that commit landed and not again
+when it was superseded. A deployment built from it would have shipped the layout nobody wanted.
+Bumping a pin belongs with the commit it names, and the clean-clone rehearsal is what catches it
+when it does not.
 
 **A clean clone was rehearsed rather than assumed.** `pull-repos.sh` was run into an empty
 directory with `ssh -o BatchMode=yes`, which fails rather than prompts: all seven repositories
@@ -45,9 +52,8 @@ first attempt on a real server failed: three mirrors cloned, then `Permission de
 Everything here is public, so HTTPS is the default now and `USE_SSH=1` is the opt-in for whoever
 pushes.
 
-`api` is pinned to `upcode-email-design`, which is the branch the e-mail round is on. Once its pull
-request into `upcode` is merged the commit is unchanged; only the branch that contains it moves, so
-the pin needs no bump — but the comment in `repos.lock` does.
+`api` is pinned to the tip of `upcode`: the e-mail round was merged there as pull request #1, and
+the pin follows the merge commit rather than the branch it came from.
 
 **`web-app` is gone from this table because it is gone from the deployment.** It was a second
 complete frontend talking to the same API with the same rights, on a published port nobody watched,
