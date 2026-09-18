@@ -18,7 +18,7 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 | `monitor`  | `UPOL-KMI/upcode-monitor`| `e6f8a1d`  | 2026-02-13 |
 | `broker`   | `UPOL-KMI/upcode-broker` | `abdc95c`  | 2022-12-04 |
 | `cleaner`  | `UPOL-KMI/upcode-cleaner`| `0a5e390`  | 2025-07-16 |
-| `web-next` | `UPOL-KMI/upcode-web-ui` | `2330b1e`  | 2026-09-17 |
+| `web-next` | `UPOL-KMI/upcode-web-ui` | `f78d335`  | 2026-09-18 |
 
 **`worker` and `isolate` were pinned to the wrong commits, and only a real build found it.** Both
 lines read "base of `upcode`" -- the commit *before* our patches -- while this machine had the

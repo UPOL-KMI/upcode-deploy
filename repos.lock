@@ -36,7 +36,7 @@ broker     abdc95cfad4586a9cd2f17bdd5fdaa48cc60445d   # UPOL-KMI/upcode-broker
 monitor    e6f8a1dd25c5837c0aef5019b91e5987bfc15c85   # UPOL-KMI/upcode-monitor
 isolate    bfdcf98ea7be96eb590d6fb1c3bc312d912208b3   # UPOL-KMI/upcode-isolate, tip of `upcode`
 cleaner    0a5e390241866fac52755098fc2cb3882e106e83   # UPOL-KMI/upcode-cleaner
-web-next   2330b1ea29b26507884433e45463d8ba6715ccf7   # UPOL-KMI/upcode-web-ui, tip of `main`
+web-next   f78d335b1813c39acca16e4e23df5de483e588a7   # UPOL-KMI/upcode-web-ui, tip of `main`
 
 # **The legacy frontend is gone**, as of the round that removed it: it was a second complete
 # frontend talking to the same API with the same rights, on a published port nobody watched, and its
