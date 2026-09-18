@@ -12,7 +12,7 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 | Component  | Source                   | Commit     | Dated      |
 | ---------- | ------------------------ | ---------- | ---------- |
-| `api`      | `UPOL-KMI/upcode-api`    | `10bf26d4` | 2026-09-17 |
+| `api`      | `UPOL-KMI/upcode-api`    | `3ea1274`  | 2026-09-18 |
 | `worker`   | `UPOL-KMI/upcode-worker` | `cf26d8c`  | 2026-09-17 |
 | `isolate`  | `UPOL-KMI/upcode-isolate`| `bfdcf98`  | 2026-09-17 |
 | `monitor`  | `UPOL-KMI/upcode-monitor`| `e6f8a1d`  | 2026-02-13 |

@@ -1,5 +1,5 @@
 /**
- * Renders the brand lockup -- the iNF mark, the product's name and the department's -- to the PNG
+ * Renders the brand lockup -- the iNF mark, the product's name and the department's -- to the PNGs
  * the e-mail templates embed.
  *
  * **It is rendered by a real browser rather than drawn by hand**, because the lockup on the site is
@@ -8,16 +8,21 @@
  * `repos/web-next/components/brand/inf-logo.tsx` and the type is the same face the site loads from
  * Google Fonts, so what lands in the PNG is what a reader sees in the header of the application.
  *
- * Rasterised at twice the size it is displayed at, which is what makes it sharp on a phone: the
- * `<img>` in the template asks for 200 CSS pixels and this writes 400 real ones.
+ * **Two files, because an image cannot do what the site does.** On the site the letters are
+ * `fill="currentColor"` and the dot and the diagonal are `fill-primary`, so the mark follows the
+ * theme: near-black on white, near-white on the dark ground, with the blue lightening to stay
+ * legible. A PNG has none of that, so one is written per scheme and the template swaps them in its
+ * `prefers-color-scheme` block. Both have a transparent background -- a white rectangle is what put
+ * a bright block in the middle of a dark message.
+ *
+ * Rasterised at twice the size they are displayed at, which is what makes them sharp on a phone.
  *
  * Run from the compose repository:
  *
  *   node tools/brand-email-logo.mjs
  *
- * It needs the frontend's own dependencies (Playwright lives there), so it is invoked through
- * `repos/web-next`. Re-run it whenever the mark or the wording changes, and rebuild the `api`
- * image afterwards -- the PNG is baked into it.
+ * Re-run it whenever the mark or the wording changes, and rebuild the `api` image afterwards --
+ * the files are baked into it.
  */
 
 import { mkdir, writeFile } from "node:fs/promises";
@@ -36,41 +41,48 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const { chromium } = createRequire(join(ROOT, "repos", "web-next", "package.json"))(
   "@playwright/test",
 );
-const OUT = join(ROOT, "repos", "api", "www", "emails", "img", "upolnicek.png");
+const OUT_DIR = join(ROOT, "repos", "api", "www", "emails", "img");
 
-/** Displayed width in the e-mail, in CSS pixels. The file is written at twice this. */
-const WIDTH = 200;
 const SCALE = 2;
 
-const BRAND = "#016BAB";
-const INK = "#14181c";
+/**
+ * One entry per colour scheme.
+ *
+ * The light pair is the site's own: `--primary` and the near-black the interface writes text in.
+ * The dark pair is the site's dark `--primary` (`oklch(0.75 0.11 240)`) and the `.ink` colour the
+ * e-mail template itself switches to at `prefers-color-scheme: dark`, so the wordmark matches the
+ * heading beneath it rather than merely being light.
+ */
+const VARIANTS = [
+  { file: "upolnicek.png", ink: "#14181c", brand: "#016BAB" },
+  { file: "upolnicek-dark.png", ink: "#f2f6f9", brand: "#68b7ed" },
+];
 
-const page = `<!doctype html>
+const markup = ({ ink, brand }) => `<!doctype html>
 <meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@500;600&display=block" rel="stylesheet">
 <style>
-  html, body { margin: 0; background: #ffffff; }
+  html, body { margin: 0; background: transparent; }
   #lockup {
     display: inline-flex;
     align-items: center;
     gap: 10px;
     padding: 2px;
-    background: #ffffff;
     font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   }
   #lockup svg { height: 40px; width: auto; display: block; }
   .words { display: flex; flex-direction: column; line-height: 1.15; }
-  .product { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: ${INK}; }
-  .department { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: ${BRAND}; }
+  .product { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: ${ink}; }
+  .department { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: ${brand}; }
 </style>
 <div id="lockup">
   <svg viewBox="72 139 145 148" xmlns="http://www.w3.org/2000/svg">
-    <path fill="${INK}" d="M206.53,197.18c4.42,0,8-3.58,8-8v-12.87h-31.99c-.09,0-.19.01-.28.02h-18.25c-4.42,0-8,3.58-8,8v44.7l27.1,55.28v-46.32h23.42c4.42,0,8-3.58,8-8v-12.87h-31.42v-19.94h23.42Z"/>
-    <path fill="${INK}" d="M103.07,176.34h-27.1v99.93c0,4.42,3.58,8,8,8h11.1c4.42,0,8-3.58,8-8v-99.93Z"/>
-    <circle fill="${BRAND}" cx="89.52" cy="155.96" r="15.46"/>
-    <path fill="${BRAND}" d="M103.07,176.34h22.12c3.05,0,5.84,1.73,7.19,4.47l50.74,103.5h-22.12c-3.05,0-5.84-1.74-7.19-4.48l-50.74-103.49Z"/>
+    <path fill="${ink}" d="M206.53,197.18c4.42,0,8-3.58,8-8v-12.87h-31.99c-.09,0-.19.01-.28.02h-18.25c-4.42,0-8,3.58-8,8v44.7l27.1,55.28v-46.32h23.42c4.42,0,8-3.58,8-8v-12.87h-31.42v-19.94h23.42Z"/>
+    <path fill="${ink}" d="M103.07,176.34h-27.1v99.93c0,4.42,3.58,8,8,8h11.1c4.42,0,8-3.58,8-8v-99.93Z"/>
+    <circle fill="${brand}" cx="89.52" cy="155.96" r="15.46"/>
+    <path fill="${brand}" d="M103.07,176.34h22.12c3.05,0,5.84,1.73,7.19,4.47l50.74,103.5h-22.12c-3.05,0-5.84-1.74-7.19-4.48l-50.74-103.49Z"/>
   </svg>
   <span class="words">
     <span class="product">UPolníček</span>
@@ -81,23 +93,25 @@ const page = `<!doctype html>
 const browser = await chromium.launch();
 const context = await browser.newContext({ deviceScaleFactor: SCALE });
 const tab = await context.newPage();
-await tab.setContent(page, { waitUntil: "networkidle" });
-// `display: block` on the face means the browser waits for it rather than painting a fallback
-// first, but the fonts API is the one thing here that can be slow -- so it is waited for by name.
-await tab.evaluate(() => document.fonts.ready);
+await mkdir(OUT_DIR, { recursive: true });
 
-const lockup = tab.locator("#lockup");
-const box = await lockup.boundingBox();
-if (!box) throw new Error("the lockup did not render");
+for (const variant of VARIANTS) {
+  await tab.setContent(markup(variant), { waitUntil: "networkidle" });
+  // `display: block` on the face means the browser waits for it rather than painting a fallback
+  // first, but the fonts API is the one thing here that can be slow -- so it is waited for by name.
+  await tab.evaluate(() => document.fonts.ready);
 
-const png = await lockup.screenshot({ type: "png" });
-await mkdir(dirname(OUT), { recursive: true });
-await writeFile(OUT, png);
-await browser.close();
+  const lockup = tab.locator("#lockup");
+  const box = await lockup.boundingBox();
+  if (!box) throw new Error(`the lockup did not render for ${variant.file}`);
 
-const displayed = Math.round(box.width);
-console.log(`Wrote ${OUT}`);
-console.log(`  ${Math.round(box.width * SCALE)}x${Math.round(box.height * SCALE)} px, shown at ${displayed}x${Math.round(box.height)}`);
-if (Math.abs(displayed - WIDTH) > 24) {
-  console.log(`  note: the lockup is ${displayed}px wide, not the ${WIDTH}px the template assumes.`);
+  // `omitBackground` is what makes the transparency: without it Chromium paints white behind the
+  // page whatever the stylesheet says, and the transparent PNG is a white one.
+  await writeFile(join(OUT_DIR, variant.file), await lockup.screenshot({ omitBackground: true }));
+  console.log(
+    `Wrote ${variant.file}  ${Math.round(box.width * SCALE)}x${Math.round(box.height * SCALE)} px,` +
+      ` shown at ${Math.round(box.width)}x${Math.round(box.height)}`,
+  );
 }
+
+await browser.close();
