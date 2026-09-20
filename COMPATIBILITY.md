@@ -8,6 +8,45 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-20
+
+| Component  | Source                   | Commit     | Dated      |
+| ---------- | ------------------------ | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`    | `c86522e`  | 2026-09-20 |
+| `worker`   | `UPOL-KMI/upcode-worker` | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate`| `bfdcf98`  | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor`| `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker` | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner`| `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui` | `c651c4d`  | 2026-09-20 |
+
+**The fork's first edit to `permissions.neon`**: a *Cvičící s rozšířenými právy* who is a direct
+supervisor of a group may open a subgroup in it. One appended block, so upstream's own edits to
+that file rebase cleanly.
+
+**Verified through the DI container, not by reasoning**, because nobody on this deployment held
+the combination the rule is about. With no membership both supervisor roles are refused; with a
+direct supervisor membership the plain supervisor is still refused and the empowered one is
+allowed; marking the group as an exam or archiving it refuses both again. `GroupViewFactory` was
+asked directly for `primaryAdminsIds`, since the frontend's new "My teaching" rests on that field
+being on the wire and `/v1/groups` has no response schema in the spec to prove it from.
+
+Two things the probing turned up that are not defects in this change but are now written down.
+`BasePermissionPolicy::$membershipCache` is static and keyed by group id **without the user id**,
+which the first probe demonstrated live -- asking about one group twice in a process returns the
+first answer. And `actionAddGroup` accepts `isExam`/`isOrganizational` with no permission check of
+their own, so a supervisor who may now open a subgroup may open it as an exam group, a flag they
+could not set afterwards.
+
+**Not observable on this deployment, and expected.** The operator is a direct administrator of
+every group he administers, so the narrowed sidebar list equals the old one and no member reads as
+inherited. The difference appears once a colleague holds supervisor membership on a shared parent,
+which is the arrangement the round exists to make possible -- and that is how it was exercised:
+a second account was given the role, opened its own subgroup, and its course stayed out of the
+first account's menu.
+
+---
+
 ## Verified set — 2026-09-17
 
 | Component  | Source                   | Commit     | Dated      |

@@ -30,13 +30,13 @@
 # Both `api` and `web-next` are pinned to the branch tips that were built and run for the
 # verification recorded in COMPATIBILITY.md.
 
-api        45979ef745beb32a4a6331b49b597ed4bed5af80   # UPOL-KMI/upcode-api, tip of `upcode`
+api        c86522ed990148c43af01e763ef0d0f4960f2b00   # UPOL-KMI/upcode-api, tip of `upcode`
 worker     cf26d8ce817abcf473abd52d0d76e0f548027502   # UPOL-KMI/upcode-worker, tip of `upcode`
 broker     abdc95cfad4586a9cd2f17bdd5fdaa48cc60445d   # UPOL-KMI/upcode-broker
 monitor    e6f8a1dd25c5837c0aef5019b91e5987bfc15c85   # UPOL-KMI/upcode-monitor
 isolate    bfdcf98ea7be96eb590d6fb1c3bc312d912208b3   # UPOL-KMI/upcode-isolate, tip of `upcode`
 cleaner    0a5e390241866fac52755098fc2cb3882e106e83   # UPOL-KMI/upcode-cleaner
-web-next   2ccc46b28bafc915ab0f3de7919b0054eada160f   # UPOL-KMI/upcode-web-ui, tip of `main`
+web-next   c651c4d01959bcc3a95f93ac8635468d105d47e9   # UPOL-KMI/upcode-web-ui, tip of `main`
 
 # **The legacy frontend is gone**, as of the round that removed it: it was a second complete
 # frontend talking to the same API with the same rights, on a published port nobody watched, and its
