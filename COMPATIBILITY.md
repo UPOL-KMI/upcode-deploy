@@ -8,6 +8,56 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-20 (roster import)
+
+| Component  | Source                    | Commit     | Dated      |
+| ---------- | ------------------------- | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `c86522e`  | 2026-09-20 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98`  | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `cf20600`  | 2026-09-20 |
+
+**`api` is unchanged from the set above**, deliberately: the whole round is in the frontend. Only
+the `web-next` image needs rebuilding.
+
+**The roster import is offered to teachers now.** It was fenced off by a hard-coded superadmin
+check, which left the one person who enrols a cohort unable to reach it. A group carries
+`permissionHints.inviteStudents`, so the group-scoped import asks that; an import with no group
+stays the administrator's.
+
+**Verified on this deployment, per role and per kind of group.** Sessions were opened for the
+existing accounts and the pages fetched as they render them: the teacher is offered the import on
+the course he administers and refused on the organizational parent, on a course he does not teach,
+and on the instance-wide import; the student is offered neither the link nor the page. As the
+teacher, `POST /v1/groups/{id}/students/{userId}` really does enrol an existing account -- added,
+checked in the group's own student list, then removed again, so the instance ended where it
+started -- and `POST /v1/users/{id}/external-login/{service}` really is a 403 for him, with
+nothing written to `external_login`.
+
+**The ACL was measured one role per process.** `BasePermissionPolicy::$membershipCache` is static
+and keyed by group id without the user id -- already written down in the set above -- and a probe
+that asks four roles in one process gets the first one's answer for all four. Asked properly:
+`inviteStudents` from `supervisor-student` up on a direct supervisor membership, `addStudent` from
+`supervisor`, and `addStudent` is absent from the hints entirely because it takes two arguments.
+
+**One thing the hint does not answer.** `inviteStudents` comes back `true` for an organizational
+group, while core-api refuses every invitation into one, so the screen checks `organizational` and
+`archived` beside the hint. Without that the button would appear on a page where every row fails.
+
+**The spreadsheet reader was run against the operator's own STAG export** -- 36 columns, read
+correctly, narrowed to six, `BENEŠ` repaired to `Beneš` -- plus 33 unit tests whose fixtures are
+built byte by byte rather than committed, since a real export carries a student's personal data.
+Five static checks pass (`typecheck`, `lint`, `format:check`, `build`, `test`: 394 unit tests).
+
+**Not run: the end-to-end suite.** It still cannot be, on an instance without `[seed]` fixtures.
+The new `e2e/import-roster.spec.ts` is written and unexecuted, and deliberately never presses the
+import button: an invitation cannot be recalled and an enrolment cannot be undone from this app.
+
+---
+
 ## Verified set — 2026-09-20
 
 | Component  | Source                   | Commit     | Dated      |
