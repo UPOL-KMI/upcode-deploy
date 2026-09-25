@@ -8,6 +8,40 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-25 (the dashboard shows your own courses)
+
+| Component  | Source                    | Commit     | Dated      |
+| ---------- | ------------------------- | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `383b908`  | 2026-09-25 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98`  | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `4e1112d`  | 2026-09-25 |
+
+**`api` is unchanged**; the round is one frontend module and its tests, closing issue 9 on
+`upcode-web-ui`. The dashboard's calendar and "Moje výuka" read the inherited-plus-direct set of
+groups, so an administrator of a department opened the app onto every colleague's deadlines; they
+now read the direct set, as the sidebar has since the round of 2026-09-20. The review queues, the
+groups a reader studies in, and the name lookup those queues print through all stay wide — core-api
+decides whose plate a review is on, and narrowing that would hide assigned work.
+
+**Verified by measurement, and the measurement was negative.** The issue named `ALGO1 - Úterý` — a
+course under a parent the operator administers, belonging to another teacher — as what should
+disappear. It holds **zero assignments**, so it contributes no deadlines and the dashboard renders
+identically before and after: the change was stashed, the page re-read, and the two outputs compared.
+The behaviour is therefore pinned by unit tests rather than by the page, and the ticket records that
+the e2e seed has no inherited-but-not-taught group to assert against. Five static checks pass
+(`typecheck`, `lint`, `format:check`, `build`, `test`: 407 unit tests).
+
+> **`pull-repos.sh` rewrites each `origin` to HTTPS**, which is what lets a keyless server fetch —
+> and what makes `git push` fail on a machine that has keys, with `could not read Username for
+> 'https://github.com'`. Push to the SSH URL explicitly (`git push git@github.com:UPOL-KMI/<repo>.git
+> <branch>`), or set the remote back after pulling. It is not a broken checkout.
+
+---
+
 ## Verified set — 2026-09-25 (the catalogue says which group, and lets you search for it)
 
 | Component  | Source                    | Commit     | Dated      |
