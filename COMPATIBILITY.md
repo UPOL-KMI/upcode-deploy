@@ -8,6 +8,49 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-25 (the catalogue says which group, and lets you search for it)
+
+| Component  | Source                    | Commit     | Dated      |
+| ---------- | ------------------------- | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `383b908`  | 2026-09-25 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98`  | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `a553384`  | 2026-09-25 |
+
+**`api` is unchanged from the set above**; the whole round is in the frontend, so only that image
+needs rebuilding. Two rounds of frontend work land together, both of them issue 8 on
+`upcode-web-ui`: the Group column and the group filter (X-016), and then the filter made searchable
+(X-022). **No core-api change in either** -- `groupsIds` was already on every `/v1/exercises` row and
+`filters[groupsIds][]` already expands through the ancestral closure; only the frontend's own type
+failed to declare the field.
+
+**What the filter does now.** A query is matched against a group's whole path, so searching a course
+code returns the course *and* every group beneath it, and the matches are drawn as a tree with their
+containers above them. That is the comparison a teacher is actually making, because filtering by the
+course returns what any of its seminar groups would return and more -- and the flat `<select>` the
+first round shipped withheld exactly that.
+
+**Measured on this deployment, in the browser.** Typing `kmi/jp` leaves the course and its seminar
+group on screen under `Univerzita Palackého v Olomouci / Katedra Informatiky / Výuka`; Enter takes
+the first match rather than clearing the filter; submitting produces
+`?group=b84abd8e-…` and the narrowed list, with the sentence that explains why the Group column may
+name a different group than the filter did. **The screen still works without JavaScript**: the
+server-rendered HTML was fetched and checked to contain the original `<select name="group">`, which
+the combobox replaces only once scripting runs. Five static checks pass (`typecheck`, `lint`,
+`format:check`, `build`, `test`: 402 unit tests). **Not run:** the e2e suite, which still cannot run
+on an instance without `[seed]` fixtures.
+
+> **A rebuild from the working tree is not a deployment.** This round was first made visible by
+> `docker compose build web-next` against the checkout, which serves whatever is checked out and
+> leaves `repos.lock` pointing somewhere else entirely -- so the operator's own machine showed the
+> new work while a fresh clone would still have built the old. Fine for showing somebody something;
+> never the end of a round. The pin above is what makes it real.
+
+---
+
 ## Verified set — 2026-09-25 (a declined notification stays declined)
 
 | Component  | Source                    | Commit     | Dated      |
