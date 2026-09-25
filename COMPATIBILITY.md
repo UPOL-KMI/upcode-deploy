@@ -8,6 +8,49 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-25 (the entry point offers what will be there)
+
+| Component  | Source                    | Commit     | Dated      |
+| ---------- | ------------------------- | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `383b908`  | 2026-09-25 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98`  | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `4a12945`  | 2026-09-25 |
+
+**`api` is unchanged**; the round is one frontend module and its tests, closing issue 11 on
+`upcode-web-ui`. Only the `web-next` image needs rebuilding.
+
+**What it fixes is an afternoon the operator already lost.** A test's *entry point* writes a name
+into the run command; *extra files* is the only thing that copies a file into the sandbox. The
+dropdown listed the exercise's own attachments, which look available and are not — attaching a file
+to an exercise puts it nowhere near the box. Picking one and leaving extra files empty gave eleven
+tests failing with `FileNotFoundError: '/box/main.py'`, while the job configuration named the file
+once per test as the run argument and in no `fetch` or `cp` task at all.
+
+The dropdown now offers **only what that test's extra files deliver**, so it is empty until one is
+added and the field's description says where its options come from. A renamed delivery is offered
+under the name it lands as. A value already configured stays selectable even when it is not in the
+list — an entry point naming a *student's* submitted file is the one case the screen cannot express
+and must not silently drop — and that is what the warning beneath the field is for. It warns rather
+than refusing, because core-api accepts such a value, and rather than auto-adding, because
+supplying a student's own file would be wrong.
+
+**Measured in the browser against a real eleven-test exercise**, not reasoned about: eleven warnings
+with extra files empty and none with them set; clearing one test's pair with the form open leaves
+that test offering only its stale value, switches its description to the "add extra files" line and
+raises exactly one more warning, all without a reload; and a test delivering `main.py` as `run.py`
+offers `run.py`, warns while the entry point still says `main.py`, and falls quiet once `run.py` is
+chosen. The experimental exercise used for this was put back to its working configuration
+afterwards and re-checked as `isBroken: false`.
+
+**Still not run: the end-to-end suite**, which this deployment has no `[seed]` fixtures for. The
+rule is covered by fourteen unit tests instead.
+
+---
+
 ## Verified set — 2026-09-25 (the dashboard shows your own courses)
 
 | Component  | Source                    | Commit     | Dated      |
