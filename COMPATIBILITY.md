@@ -36,16 +36,31 @@ below on what is patched here and should not be.
 consequence in the other direction: a licence could be switched on through the API but never off.
 Fixed in the same commit. Those two were the only occurrences of the pattern in `app/`.
 
-**What was actually run, and what was not.** The stack was not rebuilt for this round -- the Docker
-daemon was not running on the machine the fix was written on -- so the claim rests on reading the
-request path rather than on watching a mail not be sent. What was established: POST parameters reach
-the presenter as decoded JSON and are **not** patched to another type, since
-`BasePresenter::processParams()` applies a validator's `patchQueryParameter()` to path and query
-parameters only; and the old and new expressions were evaluated side by side against all three
-inputs, where the old one answers "send" to every one of them and the new one answers `false`,
-`true`, `true`. `php -l` passes on both files. **Still to do on the running stack:** publish a
-shadow assignment with the box unticked and confirm nothing leaves `api-worker`, then again with it
-ticked and confirm the mail does arrive.
+**Measured on the running stack, both directions and against the old code.** Mail was made
+observable without letting any of it out: `emails.debugMode` skips SMTP entirely and
+`emails.archivingDir` still writes a copy of every message the system composes, so the archive
+answers "was a notification produced" rather than "was it delivered". A throwaway group with one
+enrolled student, and a shadow assignment published into it three times:
+
+| Code     | `sendNotification` | Messages produced |
+| -------- | ------------------ | ----------------- |
+| fixed    | `true`             | 1                 |
+| fixed    | `false`            | **0**             |
+| original | `false`            | 1 -- the fault    |
+
+The third row is the fault reproduced on this same stack, by putting the truthiness test back into
+the container and taking it out again. Both archived messages are the real thing, subject
+`UPolníček - Nová stínová úloha`. The old and new expressions were also evaluated side by side
+against all three inputs: the old one answers "send" to every one, the new one `false`, `true`,
+`true`. `php -l` passes on both changed files.
+
+> **Testing mail: do not restart the container to apply a config change.**
+> `services/api/docker-entrypoint.sh` regenerates `app/config/config.local.neon` from the template on
+> every start, so a restart silently reverts the edit and the run measures the *production* mail
+> settings instead -- which, on a deployment with real SMTP credentials, means the test actually
+> sends. Edit the generated file and clear `temp/cache/*` instead; PHP runs with
+> `opcache.validate_timestamps=1`, so the next request picks it up. This was learnt the expensive
+> way, by sending one notification to the seeded `admin@admin.com` before the rig was right.
 
 ---
 
