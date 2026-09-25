@@ -8,6 +8,45 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-25 (an optional file name is optional again)
+
+| Component  | Source                    | Commit     | Dated      |
+| ---------- | ------------------------- | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `383b908`  | 2026-09-25 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98`  | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `9f02c0b`  | 2026-09-25 |
+
+**`api` is unchanged**; only the `web-next` image needs rebuilding.
+
+**This closes a gap the previous set opened.** The second box of an extra-file pair is labelled
+"(optional) new file name" and was written through as the empty string, which is not a name: the
+worker builds the destination as `<directory>/<name>`, so an empty one resolves to the directory
+itself and the whole job dies with `Cannot open file /var/recodex-worker-wd/.../01-dot-product/ for
+writing` — a message naming neither the field nor the row that caused it. Nothing upstream objected;
+the form's schema is two bare strings and core-api accepts the empty entry.
+
+An empty name now means the file keeps its own, which is what the label always promised. A pair
+whose file is "— none —" is dropped rather than written empty, which had the same failure mode one
+step further along. Both rules sit where the pairs are serialised, so input files get them from the
+same place as extra files.
+
+**Why it matters more than it did when it was written.** The set before this one changed the
+entry-point dropdown to offer what a test's extra files *deliver*, reading an empty name as "the
+file keeps its own" — while the save still wrote the empty string. The dropdown therefore invited
+an author to rely on a fallback the save did not honour. These two agree again.
+
+**Measured through the interface, not the API.** A test's "new file name" box was cleared and the
+form saved; the stored configuration came back as `extra-file-names: ['main.py']` rather than
+`['']`. All six reference solutions on that exercise were then re-run: six evaluations, no
+failures, the correct one scoring 1.0. Earlier the same empty value was reproduced on this
+deployment and produced the worker error quoted above.
+
+---
+
 ## Verified set — 2026-09-25 (the entry point offers what will be there)
 
 | Component  | Source                    | Commit     | Dated      |
