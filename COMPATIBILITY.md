@@ -8,6 +8,47 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-25 (a declined notification stays declined)
+
+| Component  | Source                    | Commit     | Dated      |
+| ---------- | ------------------------- | ---------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `383b908`  | 2026-09-25 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c`  | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98`  | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d`  | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c`  | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390`  | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `cf20600`  | 2026-09-20 |
+
+**`web-next` is unchanged from the set above**; the whole round is two lines in `api`, so only that
+image needs rebuilding.
+
+**Publishing a shadow assignment with the notification unticked wrote to every student anyway.**
+`ShadowAssignmentsPresenter::actionUpdateDetail()` recognised the optional `sendNotification` by
+truthiness rather than by presence. The frontend sends a JSON body and always sends the field, so a
+declined notification arrives as boolean `false`, the truthiness test read that as an absent
+parameter, and the `: true` branch sent the mail. There was no way to publish one quietly. It is a
+fault against current upstream, not our own: the ordinary assignment has compared against `null` all
+along, a few hundred lines away in `AssignmentsPresenter`. **It belongs upstream** -- see the section
+below on what is patched here and should not be.
+
+`InstancesPresenter::actionUpdateLicence()` had the same construction on `isValid`, with the
+consequence in the other direction: a licence could be switched on through the API but never off.
+Fixed in the same commit. Those two were the only occurrences of the pattern in `app/`.
+
+**What was actually run, and what was not.** The stack was not rebuilt for this round -- the Docker
+daemon was not running on the machine the fix was written on -- so the claim rests on reading the
+request path rather than on watching a mail not be sent. What was established: POST parameters reach
+the presenter as decoded JSON and are **not** patched to another type, since
+`BasePresenter::processParams()` applies a validator's `patchQueryParameter()` to path and query
+parameters only; and the old and new expressions were evaluated side by side against all three
+inputs, where the old one answers "send" to every one of them and the new one answers `false`,
+`true`, `true`. `php -l` passes on both files. **Still to do on the running stack:** publish a
+shadow assignment with the box unticked and confirm nothing leaves `api-worker`, then again with it
+ticked and confirm the mail does arrive.
+
+---
+
 ## Verified set — 2026-09-20 (roster import)
 
 | Component  | Source                    | Commit     | Dated      |

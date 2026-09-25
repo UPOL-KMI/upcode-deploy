@@ -30,7 +30,7 @@
 # Both `api` and `web-next` are pinned to the branch tips that were built and run for the
 # verification recorded in COMPATIBILITY.md.
 
-api        c86522ed990148c43af01e763ef0d0f4960f2b00   # UPOL-KMI/upcode-api, tip of `upcode`
+api        383b90840fc09b8a82cc0070432725306de7e96a   # UPOL-KMI/upcode-api, tip of `upcode`
 worker     cf26d8ce817abcf473abd52d0d76e0f548027502   # UPOL-KMI/upcode-worker, tip of `upcode`
 broker     abdc95cfad4586a9cd2f17bdd5fdaa48cc60445d   # UPOL-KMI/upcode-broker
 monitor    e6f8a1dd25c5837c0aef5019b91e5987bfc15c85   # UPOL-KMI/upcode-monitor
