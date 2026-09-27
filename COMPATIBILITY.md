@@ -8,6 +8,86 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-09-25 (the attempt screen is tabs)
+
+| Component  | Source                    | Commit    | Dated      |
+| ---------- | ------------------------- | --------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `383b908` | 2026-09-25 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c` | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98` | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d` | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c` | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390` | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `9a930de` | 2026-09-25 |
+
+> **This pin is on the remote**, as of the push that accompanied this entry. It was held back for a
+> round: the merge was made locally and `origin` was still an HTTPS URL, which this host has no
+> credential for, so `pull-repos.sh` could not have resolved `9a930de`. The remote is SSH now, like
+> every other repository here. Everything below was run against that commit's tree on this machine.
+
+**`api` is unchanged**; only the `web-next` image needs rebuilding.
+
+The detail of a submitted attempt is now three tabs -- *Přehled*, *Automatické testy*, *Diskuze* --
+and the files screen beside it two, *Revize* and *Diskuze*, on the `?tab=` pattern the assignment
+and group screens already use. The tabs carry figures: the test tally as `2/3`, the number of posts
+on the discussion.
+
+**A data-only exercise has no *Automatické testy* tab**, because nothing is ever run for it, and
+the care went into what that would otherwise have hidden. The evaluation box, the runs and -- the
+one that would really have been missed -- the delete button fall back to *Přehled*. Re-running is
+not offered for such a submission at all. A URL carrying `?monitor=` or `?submission=` opens the
+tab those things are on, so watching an evaluation still works from the address a submit produces.
+
+**A second round rides along**: the confirmation for setting points by hand contradicted itself.
+Leaving the points field empty hands the decision back to the evaluation, and the dialog said the
+student gets what the evaluation worked out and then that what was set replaces it. A typed bonus
+was saved without being read back at all. Both now say what they will do.
+
+**Verified through the interface on this stack**, against both shapes of submission: an evaluated
+Python attempt (three tabs, the test table under the second, `0/1` on the tab) and a data-only one
+(two tabs, `?tab=tests` falling back to *Přehled*, delete alone at the foot of the overview). The
+points dialog was opened in all three of its states -- empty, empty with a bonus, a value with a
+bonus -- and cancelled each time; core-api confirmed the stored values were untouched afterwards.
+The e2e suite still cannot run here, and six of its assertions were repointed at the tab their
+content moved to.
+
+---
+
+## Verified set — 2026-09-25 (a submitted file can be looked at, and commented on)
+
+| Component  | Source                    | Commit    | Dated      |
+| ---------- | ------------------------- | --------- | ---------- |
+| `api`      | `UPOL-KMI/upcode-api`     | `383b908` | 2026-09-25 |
+| `worker`   | `UPOL-KMI/upcode-worker`  | `cf26d8c` | 2026-09-17 |
+| `isolate`  | `UPOL-KMI/upcode-isolate` | `bfdcf98` | 2026-09-17 |
+| `monitor`  | `UPOL-KMI/upcode-monitor` | `e6f8a1d` | 2026-02-13 |
+| `broker`   | `UPOL-KMI/upcode-broker`  | `abdc95c` | 2022-12-04 |
+| `cleaner`  | `UPOL-KMI/upcode-cleaner` | `0a5e390` | 2025-07-16 |
+| `web-next` | `UPOL-KMI/upcode-web-ui`  | `3143905` | 2026-09-25 |
+
+**`api` is unchanged**; only the `web-next` image needs rebuilding.
+
+An image, a PDF or a spreadsheet handed in as a solution is now shown on the files screen rather
+than only offered for download, and **any** file can be commented on — whole-file remarks for the
+ones that are not text, stored as `(file, 0)`, `(file, 1)` and so on, beside the line comments that
+already existed. The download button stays above every preview and is conditional on none of it.
+
+**What decides that a file may be shown is a list of what can, not a list of what cannot.** SVG,
+HTML and XML are absent from it deliberately: until this round nothing submitted could execute,
+purely because every file was served `application/octet-stream` with `attachment`, and serving a
+file inline on this app's own origin would have made a student's markup run with this app's rights.
+An unlisted type is never relabelled, so it keeps those headers and downloads.
+
+**How much of this was verified, and by whom.** The allow-list and the comment ordering are covered
+by unit tests. The `?inline` route was measured here: a vetted name comes back with its real media
+type and `X-Content-Type-Options: nosniff`, an unvetted one stays an attachment. **The rendering
+itself was verified by the operator in a real browser, not by this stack** — the embedded browser
+used for checking has no PDF viewer at all and downloads `application/pdf` even when it is served
+inline, so a blank frame here proves nothing either way. That is also why the PDF frame ended up
+with no `sandbox` attribute; the reasoning is in `repos/web-next/docs/DECISIONS.md` DEC-159.
+
+---
+
 ## Verified set — 2026-09-25 (an optional file name is optional again)
 
 | Component  | Source                    | Commit     | Dated      |
