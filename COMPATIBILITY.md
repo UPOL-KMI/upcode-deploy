@@ -8,6 +8,23 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-10-05 (comments that travel with their file)
+
+**`web-next` moved** to `c14c33d`; no other pin moved.
+
+- The comments of an image or a PDF float at the bottom right of a wide screen while that file is
+  in view, come to rest under it at its end, and give way to the next file's own window.
+- Two files of the same name in one solution are refused by the upload control before upload,
+  instead of core-api's bare 500 ("Target entry already exists"); any other server failure of a
+  submission is translated and says to upload the files again.
+- The attempts dialog is wider and scrolls itself.
+
+Typecheck, lint, format, build and 466 unit tests green. The duplicate refusal and the dialog were
+checked on this stack in the browser; the floating comments on the design-system page with two
+generated images — **not yet seen on a real data-only solution**, and not on a PDF.
+
+---
+
 ## Verified set — 2026-10-05 (a scanned page read in place)
 
 **`web-next` moved** to `9aae44b`; no other pin moved.
