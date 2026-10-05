@@ -8,6 +8,21 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-10-05 (a scanned page read in place)
+
+**`web-next` moved** to `9aae44b`; no other pin moved.
+
+A submitted image is shown in a viewer on the page instead of a dialog: zoom buttons, fit to width
+(how it opens), whole image, 1:1, rotate and full screen; a mouse drags it and Ctrl or ⌘ with the
+wheel zooms. On a wide screen the file's comments sit beside the image, so a teacher reads a scan
+and writes about it at once.
+
+Typecheck, lint, format, build and 466 unit tests green. The viewer was tried on the design-system
+page with a generated page-sized image — the dev instance has no solution with an image — and is
+**not yet seen on a real data-only solution**; the operator checks it on the server.
+
+---
+
 ## Verified set — 2026-10-05 (grading a class from the code)
 
 **`web-next` moved** to `5793b67`, the merge of `x-031-hodnoceni`; no other pin moved.
