@@ -8,6 +8,26 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-10-05 (grading a class from the code)
+
+**`web-next` moved** to `5793b67`, the merge of `x-031-hodnoceni`; no other pin moved.
+
+**Grading one student no longer goes round five screens.** _Hodnotit_ in the class table opens the
+student's best attempt in grading mode: the queue (previous, the student, next, next ungraded)
+above the tabs and a sticky points bar beside the code. The verdict card on the solution screen is
+gone; the bar is the one place points are set, and it says whether the open attempt counts towards
+the student's result — best, accepted, or which attempt counts instead. An attempt whose
+evaluation failed is never counted by core-api, so it can no longer be graded or accepted. A student
+who left the group no longer reads "evaluation failed" in the class table.
+
+Verified on this stack by the operator, clicking through a course with test students: the queue,
+saving points, full marks, mark as reviewed, the attempts dialog, the counting notices, a failed
+attempt and a student moved to another group. Typecheck, lint, format, build and 466 unit tests
+green. The e2e specs this touches were written and **not run** — the dev instance is a clean install
+without the seed accounts.
+
+---
+
 ## Verified set — 2026-09-25 (the attempt screen is tabs)
 
 | Component  | Source                    | Commit    | Dated      |
