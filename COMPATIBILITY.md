@@ -8,6 +8,22 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-10-07 (what a student has handed in, read from their solutions)
+
+**`web-next` moved** to `ac7384d`; no other pin moved.
+
+- The student's dashboard card reads "Vše odevzdáno" or "Zbývá odevzdat: N", then "X z Y
+  ohodnoceno", then the threshold, instead of "1 z 4 zadání vyřešeno".
+- Whether a person graded an assignment is read from the best solution, not guessed from its
+  points, in the student's assignment list, the dashboard and a teacher's class table for one
+  assignment; points a teacher set read "Body od vyučujícího" there instead of the automatic
+  verdict.
+
+Typecheck, lint, format, build and 474 unit tests green. Checked in the rebuilt `web-next`
+container as the demo student from `pnpm seed:grading-demo`; the operator confirmed it.
+
+---
+
 ## Verified set — 2026-10-07 (a student's standing as the student sees it)
 
 **`web-next` moved** to `04119d3`; no other pin moved.
