@@ -8,6 +8,28 @@ Bump both together: change `repos.lock`, re-verify, and add a row here saying wh
 
 ---
 
+## Verified set — 2026-10-07 (a student's standing as the student sees it)
+
+**`web-next` moved** to `04119d3`; no other pin moved.
+
+- The class table counts only what students can see: a hidden assignment or hidden shadow
+  assignment is in neither the points nor the maximum, so a teacher reads 12/10 where core-api's
+  own stats said 12/100, and the threshold badge follows. "Vyřešeno" became **Odevzdáno** and
+  **Hodnoceno**.
+- The points matrix has shadow assignments as columns, an All / Standard / Shadow filter, hidden
+  columns dimmed and left out of the totals, and the bonus shown in its cell (`5+1`). The CSV
+  export marks hidden columns.
+- A shadow assignment's points are typed into a row per student, with full-marks and zero buttons
+  that prefill, and a bar to award several students at once.
+
+Typecheck, lint, format, build and 474 unit tests green. Verified on this stack in the browser
+with `pnpm seed:grading-demo` (one `[demo]` course, expected figures in web-next's
+`docs/SEED_ACCOUNTS.md`), on the dev server and again in the rebuilt `web-next` container; the
+operator confirmed it. The e2e specs this touches were updated and **not run** — the dev instance
+has no seed accounts.
+
+---
+
 ## Verified set — 2026-10-05 (comments that travel with their file)
 
 **`web-next` moved** to `c14c33d`; no other pin moved.
